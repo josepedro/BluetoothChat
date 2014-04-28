@@ -16,6 +16,8 @@
 
 package com.example.android.BluetoothChat;
 
+import java.lang.reflect.InvocationTargetException;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -42,6 +44,7 @@ import android.widget.Toast;
 /**
  * This is the main Activity that displays the current chat session.
  */
+@SuppressLint("NewApi")
 public class BluetoothChat extends Activity {
     // Debugging
     private static final String TAG = "BluetoothChat";
@@ -296,7 +299,18 @@ public class BluetoothChat extends Activity {
                 // Get the BLuetoothDevice object
                 BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
                 // Attempt to connect to the device
-                mChatService.connect(device);
+                try {
+					mChatService.connect(device);
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (InvocationTargetException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
             break;
         case REQUEST_ENABLE_BT:

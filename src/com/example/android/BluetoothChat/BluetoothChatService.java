@@ -19,8 +19,11 @@ package com.example.android.BluetoothChat;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
@@ -37,6 +40,7 @@ import android.util.Log;
  * incoming connections, a thread for connecting with a device, and a
  * thread for performing data transmissions when connected.
  */
+@SuppressLint("NewApi")
 public class BluetoothChatService {
     // Debugging
     private static final String TAG = "BluetoothChatService";
@@ -67,7 +71,8 @@ public class BluetoothChatService {
      * @param context  The UI Activity Context
      * @param handler  A Handler to send messages back to the UI Activity
      */
-    public BluetoothChatService(Context context, Handler handler) {
+    @SuppressLint("NewApi")
+	public BluetoothChatService(Context context, Handler handler) {
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         mState = STATE_NONE;
         mHandler = handler;
@@ -114,22 +119,30 @@ public class BluetoothChatService {
     /**
      * Start the ConnectThread to initiate a connection to a remote device.
      * @param device  The BluetoothDevice to connect
+     * @throws InvocationTargetException 
+     * @throws IllegalAccessException 
+     * @throws IllegalArgumentException 
      */
-    public synchronized void connect(BluetoothDevice device) {
+    public synchronized void connect(BluetoothDevice device) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
         if (D) Log.d(TAG, "connect to: " + device);
+        
+        System.out.println("aiaihaihahiuhaiuhah1");
 
         // Cancel any thread attempting to make a connection
         if (mState == STATE_CONNECTING) {
             if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
         }
-
+        System.out.println("aiaihaihahiuhaiuhah1.5");
         // Cancel any thread currently running a connection
         if (mConnectedThread != null) {mConnectedThread.cancel(); mConnectedThread = null;}
-
+        System.out.println("aiaihaihahiuhaiuhah1.6");
         // Start the thread to connect with the given device
         mConnectThread = new ConnectThread(device);
+        System.out.println("aiaihaihahiuhaiuhah1.7");
         mConnectThread.start();
+        System.out.println("aiaihaihahiuhaiuhah1.8");
         setState(STATE_CONNECTING);
+        System.out.println("aiaihaihahiuhaiuhah1.9");
     }
 
     /**
@@ -139,6 +152,8 @@ public class BluetoothChatService {
      */
     public synchronized void connected(BluetoothSocket socket, BluetoothDevice device) {
         if (D) Log.d(TAG, "connected");
+        
+        System.out.println("aihaihahahauhahaiuhaiuha2");
 
         // Cancel the thread that completed the connection
         if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
@@ -233,6 +248,7 @@ public class BluetoothChatService {
 
             // Create a new listening server socket
             try {
+            	
                 tmp = mAdapter.listenUsingRfcommWithServiceRecord(NAME, MY_UUID);
             } catch (IOException e) {
                 Log.e(TAG, "listen() failed", e);
@@ -301,7 +317,7 @@ public class BluetoothChatService {
         private final BluetoothSocket mmSocket;
         private final BluetoothDevice mmDevice;
 
-        public ConnectThread(BluetoothDevice device) {
+        public ConnectThread(BluetoothDevice device) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
             mmDevice = device;
             BluetoothSocket tmp = null;
 
@@ -309,6 +325,17 @@ public class BluetoothChatService {
             // given BluetoothDevice
             try {
                 tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
+                try {
+					Method m = device.getClass().getMethod("createInsecureRfcommSocket", new Class[] {int.class});
+					tmp = (BluetoothSocket) m.invoke(device, 1);
+				} catch (SecurityException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (NoSuchMethodException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                
             } catch (IOException e) {
                 Log.e(TAG, "create() failed", e);
             }
